@@ -116,6 +116,8 @@ def main():
         default=1, help='use_limit_vocab')
     parser.add_argument('--batchsize_nn', dest='batchsize_nn',
         type=int, default=10, help='batchsize_nn')
+    parser.add_argument('--update_nearest_epoch', dest='update_nearest_epoch',
+                        type=int, default=1, help='update_nearest_epoch')
 
     args = parser.parse_args()
     batchsize = args.batchsize
@@ -277,12 +279,10 @@ def main():
         chainer.config.train = True
         iteration_list = range(0, len(train_x), batchsize)
 
-        # iteration_list_semi = range(0, len(semi_train_x), batchsize)
         perm = np.random.permutation(len(train_x))
         if args.use_semi_data:
             perm_semi = [np.random.permutation(len(semi_train_x)) for _ in range(2)]
             perm_semi = np.concatenate(perm_semi, axis=0)
-            # print 'perm_semi:', perm_semi.shape
         def idx_func(shape):
             return xp.arange(shape).astype(xp.int32)
 
@@ -326,23 +326,22 @@ def main():
                     model.cleargrads()
                     loss_adv_first.backward()
 
-                    if args.use_adv:
-                        if args.use_attn_d:
-                            # iAdv
-                            attn_d_grad = model.attention_d_var.grad
-                            attn_d_grad_original = attn_d_grad
-                            attn_d_grad_norm = xp.linalg.norm(attn_d_grad, axis=tuple(range(1, len(attn_d_grad.shape))))
-                            attn_d_grad = F.normalize(attn_d_grad, axis=1)
-                            # Get directional vector
-                            dir_normed = model.dir_normed.data
-                            attn_d = F.broadcast_to(attn_d_grad, dir_normed.shape).data
-                            d = xp.sum(attn_d * dir_normed, axis=1)
-                        else:
-                            # Adv
-                            d = model.d_var.grad
-                            attn_d_grad = chainer.Variable(d)
-                            attn_d_grad_original = d
-                            d_data = d.data if isinstance(d, chainer.Variable) else d
+                    if args.use_attn_d:
+                        # iAdv
+                        attn_d_grad = model.attention_d_var.grad
+                        attn_d_grad_original = attn_d_grad
+                        attn_d_grad_norm = xp.linalg.norm(attn_d_grad, axis=tuple(range(1, len(attn_d_grad.shape))))
+                        attn_d_grad = F.normalize(attn_d_grad, axis=1)
+                        # Get directional vector
+                        dir_normed = model.dir_normed.data
+                        attn_d = F.broadcast_to(attn_d_grad, dir_normed.shape).data
+                        d = xp.sum(attn_d * dir_normed, axis=1)
+                    else:
+                        # Adv
+                        d = model.d_var.grad
+                        attn_d_grad = chainer.Variable(d)
+                        attn_d_grad_original = d
+                        d_data = d.data if isinstance(d, chainer.Variable) else d
                     output = model(x, x_length, d=d)
                     # Adversarial loss
                     loss_adv = F.softmax_cross_entropy(output, y, normalize=True)
