@@ -311,7 +311,6 @@ def main():
             y = to_gpu(train_y[sample_idx])
 
             d = None
-            d_hidden = None
 
             # Classification loss
             output = model(x, x_length)
@@ -329,8 +328,6 @@ def main():
                     if args.use_attn_d:
                         # iAdv
                         attn_d_grad = model.attention_d_var.grad
-                        attn_d_grad_original = attn_d_grad
-                        attn_d_grad_norm = xp.linalg.norm(attn_d_grad, axis=tuple(range(1, len(attn_d_grad.shape))))
                         attn_d_grad = F.normalize(attn_d_grad, axis=1)
                         # Get directional vector
                         dir_normed = model.dir_normed.data
@@ -339,9 +336,6 @@ def main():
                     else:
                         # Adv
                         d = model.d_var.grad
-                        attn_d_grad = chainer.Variable(d)
-                        attn_d_grad_original = d
-                        d_data = d.data if isinstance(d, chainer.Variable) else d
                     output = model(x, x_length, d=d)
                     # Adversarial loss
                     loss_adv = F.softmax_cross_entropy(output, y, normalize=True)
@@ -358,8 +352,6 @@ def main():
                     if args.use_attn_d:
                         # iVAT (ours)
                         attn_d_grad = model.attention_d_var.grad
-                        attn_d_grad_original = attn_d_grad
-                        attn_d_grad_norm = xp.linalg.norm(attn_d_grad, axis=tuple(range(1, len(attn_d_grad.shape))))
                         attn_d_grad = F.normalize(attn_d_grad, axis=1)
                         # Get directional vector
                         dir_normed = model.dir_normed.data

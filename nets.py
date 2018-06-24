@@ -253,9 +253,10 @@ class uniLSTM_iVAT(chainer.Chain):
                     attention_d_var = Variable(d_attn.astype(self.xp.float32))
                     self.attention_d_var = attention_d_var
                     attention_d = attention_d_var
-                    attention_d = F.normalize(attention_d, axis=1)
+                    if self.xp.sum(attention_d.data) != 0.0:
+                        attention_d = F.normalize(attention_d, axis=1)
                     attention_d = F.broadcast_to(attention_d, dir_normed.shape)
-                    attention_d = F.sum(attention_d * dir_normed, axis=1)
+                    attention_d = F.sum(attention_d * dir_normed.data, axis=1)
                     # Normalize at word-level
                     d_var = get_normalized_vector(attention_d, None)
                     self.d_var = d_var
