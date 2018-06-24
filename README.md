@@ -26,7 +26,7 @@ Note that this command takes about 30 hours with single GPU.
 ## Train (iVAT: Interpretable Semi-supervised setting)
 Please add `--use_semi_data 1` and `--use_attn_d 1` to use iVAT (ours).
 ```
-$ python train.py --gpu=0 --n_epoch=30 --batchsize 32 --save_name=imdb_model_vat --lower=0 --use_adv=0 --xi_var=5.0  --use_unlabled=1 --alpha=0.001 --alpha_decay=0.9998 --min_count=1 --ignore_unk=1 --pretrained_model imdb_pretrained_lm_ijcai.model --use_exp_decay=1 --clip=5.0 --batchsize_semi 96 --use_semi_data 1 --use_attn_d 1
+$ python train.py --gpu=0 --n_epoch=30 --batchsize 32 --save_name=imdb_model_vat --lower=0 --use_adv=0 --xi_var=15.0  --use_unlabled=1 --alpha=0.001 --alpha_decay=0.9998 --min_count=1 --ignore_unk=1 --pretrained_model imdb_pretrained_lm_ijcai.model --use_exp_decay=1 --clip=5.0 --batchsize_semi 96 --use_semi_data 1 --use_attn_d 1 
 ```
 
 ## Train (VAT: Semi-supervised setting)
@@ -39,7 +39,7 @@ Note that this command takes about 8 hours with single GPU.
 ## Train (iAdv: Interpretable Supervised setting)
 Please add `--use_adv 1` and `--use_attn_d 1` to use iAdv.
 ```
-$ python train.py --gpu=0 --n_epoch=30 --batchsize 32 --save_name=imdb_model_adv --lower=0 --use_adv 1 --xi_var=5.0  --use_unlabled=1 --alpha=0.001 --alpha_decay=0.9998 --min_count=1 --ignore_unk=1 --pretrained_model imdb_pretrained_lm_ijcai.model --use_exp_decay=1 --clip=5.0
+$ python train.py --gpu=0 --n_epoch=30 --batchsize 32 --save_name=imdb_model_adv --lower=0 --use_adv 1 --xi_var=15.0  --use_unlabled=1 --alpha=0.001 --alpha_decay=0.9998 --min_count=1 --ignore_unk=1 --pretrained_model imdb_pretrained_lm_ijcai.model --use_exp_decay=1 --clip=5.0 
 ```
 
 ## Train (Adv: Supervised setting)
