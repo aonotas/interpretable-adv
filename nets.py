@@ -245,7 +245,7 @@ class uniLSTM_iVAT(chainer.Chain):
                         d_attn = self.xp.ones(shape, dtype='f') * (1.0 / self.args.nn_k)
                     else:
                         # iAdv
-                        d_attn = self.xp.zeros(xs.shape, dtype='f')
+                        d_attn = self.xp.zeros(shape, dtype='f')
 
                     # TODO: Add random pertubation for iVAT
                     dir_normed = get_normalized_vector(diff, None, (2))
