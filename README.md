@@ -9,7 +9,7 @@ Please install [Chainer](https://github.com/chainer/chainer) and [Cupy](https://
 You can set up the environment easily with this [*Setup.md*](https://github.com/aonotas/interpretable-adv/blob/master/Setup.md).
 
 ## Download Pretrain Model
-Please download pre-trained model. Note that this pretrained model is genera
+Please download pre-trained model. From http://sato-motoki.com/research/vat/imdb_pretrained_lm_ijcai.model
 ```
 $ wget http://sato-motoki.com/research/vat/imdb_pretrained_lm_ijcai.model
 ```
