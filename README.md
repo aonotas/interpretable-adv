@@ -3,7 +3,6 @@ Code for [*Interpretable Adversarial Perturbation in Input Embedding Space for T
 
 This code reproduce the our paper with [Chainer](https://github.com/chainer/chainer).
 
-
 ## Setup Environment
 Please install [Chainer](https://github.com/chainer/chainer) and [Cupy](https://github.com/cupy/cupy).
 
@@ -49,6 +48,21 @@ $ python train.py --gpu=0 --n_epoch=30 --batchsize 32 --save_name=imdb_model_adv
 ```
 Note that this command takes about 6 hours with single GPU.
 
+
+## Visualize Example
+<p align="center"><img src="https://github.com/aonotas/interpretable-adv/blob/master/visualize_sample02.png" width="250"></p>
+
+## Visualize (iAdv)
+Please change `[trained_model_filename]`.
+```
+python analysis.py --gpu 0 --n_epoch 1 --load_trained_lstm [trained_model_filename] --use_attn_d=1 --use_adv 1 --analysis_mode 1 --lower 0 --batchsize 1 --online_nn 1 --save_name visualize_imdb_baseline.pickle
+```
+
+```
+python visualize.py --pickle_filename visualize_imdb_baseline.pickle --savefig_dir figs
+```
+
+
 # Authors
 We thank Takeru Miyato ([@takerum](https://github.com/takerum)) who suggested that we reproduce the result of a [Miyato et al., 2017].
 - Code author: [@aonotas](https://github.com/aonotas/)
@@ -64,5 +78,3 @@ International Conference on Learning Representation (ICLR), 2017
 Interpretable Adversarial Perturbation in Input Embedding Space for Text.
 IJCAI-ECAI-2018
 ```
-# TODO
-- Add visualizing code
