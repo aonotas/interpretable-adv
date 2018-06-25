@@ -352,8 +352,6 @@ def main():
             if args.use_attn_d:
                 # iAdv
                 attn_d_grad = model.attention_d_var.grad
-                attn_d_grad_original = attn_d_grad
-                attn_d_grad_norm = xp.linalg.norm(attn_d_grad, axis=tuple(range(1, len(attn_d_grad.shape))))
                 attn_d_grad = F.normalize(attn_d_grad, axis=1)
                 # Get directional vector
                 dir_normed = model.dir_normed.data
@@ -363,8 +361,9 @@ def main():
                 # Adv
                 d = model.d_var.grad
                 attn_d_grad = chainer.Variable(d)
-                attn_d_grad_original = d
             d_data = d.data if isinstance(d, chainer.Variable) else d
+            # sentence-normalize
+            d_data = d_data / xp.linalg.norm(d_data)
 
             # Analysis mode
             predict_adv = xp.argmax(output.data, axis=1)
@@ -411,6 +410,7 @@ def main():
 
                 max_sim_scalar = xp.max(sims, axis=1)[idx].reshape(-1)
                 attn_d_value = d_data[idx].reshape(-1)
+                # grad_scale = xp.linalg.norm(d_data[idx]) / xp.max(xp.linalg.norm(d_data))
                 grad_scale = xp.linalg.norm(d_data[idx]) / xp.max(xp.linalg.norm(d_data, axis=1))
 
                 nn_words_list = [vocab_inv[int(n_i)] for n_i in nearest_ids[idx]]
@@ -418,8 +418,13 @@ def main():
 
                 sims_nn = sims[idx]
 
+
+                diff_norm_scala = xp.linalg.norm(diff.data[idx, max_sim_idx])
+                d_data_scala = xp.linalg.norm(d_data[idx])
+
+
                 vis_item = [r_i, vocab_inv[int(x_concat[idx])], vocab_inv[int(replace_word_idx)],
-                            to_cpu(max_sim_scalar), to_cpu(attn_d_value), nn_words, to_cpu(grad_scale), is_adv_example, to_cpu(sims_nn)]
+                            to_cpu(max_sim_scalar), to_cpu(attn_d_value), nn_words, to_cpu(grad_scale), is_adv_example, to_cpu(sims_nn), to_cpu(diff_norm_scala), to_cpu(d_data_scala)]
                 vis_items.append(vis_item)
             save_items.append([vis_items, to_cpu(x[0]), to_cpu(y)])
 
