@@ -55,7 +55,7 @@ Note that this command takes about 6 hours with single GPU.
 ## Visualize (iAdv)
 Please change `[trained_model_filename]`.
 ```
-python analysis.py --gpu 0 --n_epoch 1 --load_trained_lstm [trained_model_filename] --use_attn_d=1 --use_adv 1 --analysis_mode 1 --lower 0 --batchsize 1 --online_nn 1 --save_name visualize_imdb_baseline.pickle
+python analysis.py --gpu 0 --n_epoch 1 --load_trained_lstm [trained_model_filename] --use_attn_d=1 --use_adv 1 --analysis_mode 1 --lower 0 --batchsize 1 --save_name visualize_imdb_baseline.pickle
 ```
 
 ```
