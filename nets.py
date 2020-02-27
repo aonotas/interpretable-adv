@@ -47,15 +47,30 @@ class uniLSTM_iVAT(chainer.Chain):
             hidden_layer=L.Linear(hidden_dim, hidden_classifier),
             output_layer=L.Linear(hidden_classifier, n_class)
         )
-        uni_lstm = L.NStepLSTM(n_layers=n_layers, in_size=emb_dim,
-                               out_size=hidden_dim, dropout=use_dropout)
-        # Forget gate bias => 1.0
-        # MEMO: Values 1 and 5 reference the forget gate.
-        for w in uni_lstm:
-            w.b1.data[:] = 1.0
-            w.b5.data[:] = 1.0
 
-        self.add_link('uni_lstm', uni_lstm)
+
+
+        if self.args.use_bilstm:
+            # for Sequence Labeling
+            initialW = None
+            initialW = chainer.initializers.Orthogonal()
+            bi_lstm = L.NStepBiLSTM(n_layers=n_layers, in_size=emb_dim,
+                                    out_size=int(hidden_dim / 2), dropout=use_dropout,
+                                    initialW=initialW)
+            for w in bi_lstm:
+                w.b1.data[:] = 1.0
+                w.b5.data[:] = 1.0
+            self.add_link('uni_lstm', bi_lstm)
+        else:
+            # for Sentiment Classification
+            uni_lstm = L.NStepLSTM(n_layers=n_layers, in_size=emb_dim,
+                                   out_size=hidden_dim, dropout=use_dropout)
+            # Forget gate bias => 1.0
+            # MEMO: Values 1 and 5 reference the forget gate.
+            for w in uni_lstm:
+                w.b1.data[:] = 1.0
+                w.b5.data[:] = 1.0
+            self.add_link('uni_lstm', uni_lstm)
 
         self.hidden_dim = hidden_dim
         self.train = True
@@ -294,9 +309,14 @@ class uniLSTM_iVAT(chainer.Chain):
 
         hy_f, cy_f, ys_list = self.uni_lstm(hx=hx, cx=cx, xs=xs_f)
 
-        hy = [_h[-1] for _h in ys_list]
-        hy = F.concat(hy, axis=0)
-        hy = F.reshape(hy, (batchsize, -1))
+        if self.args.use_seq_labeling:
+            # Sequence Labeling
+            hy = F.concat(ys_list, axis=0)
+            hy = F.reshape(hy, (-1, hy.shape[-1]))
+        else:
+            hy = [_h[-1] for _h in ys_list]
+            hy = F.concat(hy, axis=0)
+            hy = F.reshape(hy, (batchsize, -1))
         self.hy = hy
 
         output = self.output_mlp(hy)
