@@ -88,7 +88,7 @@ def main():
     parser.add_argument('--norm_sentence_level', dest='norm_sentence_level',
                         type=int, default=1, help='norm_sentence_level')
     parser.add_argument('--dataset', default='imdb',
-                        choices=['imdb', 'elec', 'rotten', 'dbpedia', 'rcv1'])
+                        choices=['imdb', 'elec', 'rotten', 'dbpedia', 'rcv1', 'fce'])
     parser.add_argument('--eval', dest='eval', type=int, default=0, help='eval')
     parser.add_argument('--emb_dim', dest='emb_dim', type=int,
                         default=256, help='emb_dim')
@@ -118,6 +118,10 @@ def main():
         type=int, default=10, help='batchsize_nn')
     parser.add_argument('--update_nearest_epoch', dest='update_nearest_epoch',
                         type=int, default=1, help='update_nearest_epoch')
+    parser.add_argument('--use_seq_labeling', dest='use_seq_labeling',
+                        type=int, default=0, help='use_seq_labeling')
+    parser.add_argument('--use_bilstm', dest='use_bilstm',
+                        type=int, default=0, help='use_bilstm')
 
     args = parser.parse_args()
     batchsize = args.batchsize
@@ -148,6 +152,14 @@ def main():
         vocab, vocab_count = vocab_obj
         n_class = 2
     # TODO: add other dataset code
+    elif args.dataset == 'fce':
+        vocab, doc_counts, dataset, lm_dataset, w2v = utils.load_fce(lower=args.lower, min_count=args.min_count, ignore_unk=False, use_w2v_flag=0, use_semi_data=args.use_semi_data)
+        (train_x, train_x_len, train_y,
+         dev_x, dev_x_len, dev_y,
+         test_x, test_x_len, test_y) = dataset
+        vocab_count = doc_counts
+        train_vocab_size = len(vocab)
+        lm_dataset = (train_x, train_x_len)
 
     if args.use_semi_data:
         semi_train_x, semi_train_x_len = lm_data
@@ -230,7 +242,13 @@ def main():
         for i_index, index in enumerate(iteration_list):
             x = [to_gpu(_x) for _x in x_set[index:index + batchsize]]
             x_length = x_length_set[index:index + batchsize]
-            y = to_gpu(y_set[index:index + batchsize])
+
+            if args.use_seq_labeling:
+                # for sequence labeling (Grammaly error detection)
+                y_flat = np.concatenate([train_y[_i] for _i in sample_idx], axis=0).astype(np.int32)
+                y = to_gpu(y_flat)
+            else:
+                y = to_gpu(y_set[index:index + batchsize])
             output = model(x, x_length)
 
             predict = xp.argmax(output.data, axis=1)
@@ -308,7 +326,13 @@ def main():
             x = [to_gpu(train_x[_i]) for _i in sample_idx]
             x_length = [train_x_len[_i] for _i in sample_idx]
 
-            y = to_gpu(train_y[sample_idx])
+            if args.use_seq_labeling:
+                # for sequence labeling (Grammaly error detection)
+                y_flat = np.concatenate([train_y[_i] for _i in sample_idx], axis=0).astype(np.int32)
+                y = to_gpu(y_flat)
+            else:
+                # for sentiment classification
+                y = to_gpu(train_y[sample_idx])
 
             d = None
 
